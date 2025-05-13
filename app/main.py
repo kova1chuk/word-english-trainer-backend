@@ -9,4 +9,4 @@ app.include_router(router)
 
 @app.get("/health", tags=["Health"])
 def health_check():
-    return {"status": "ok"}
+    return {"status": "OK"}
