@@ -2,27 +2,28 @@ name: Deploy FastAPI to ECS
 
 on:
   push:
-    branches:
-      - dev
+    branches: [ dev ]
 
 permissions:
   contents: read
   id-token: write
 
 env:
-  AWS_REGION:      ${{ secrets.AWS_REGION }}
-  AWS_ROLE_ARN:    ${{ secrets.AWS_ROLE_ARN }}       
-  ECR_REPOSITORY:  ${{ secrets.ECR_REPOSITORY }}
-  ECR_REGISTRY:    ${{ secrets.ECR_REGISTRY }}
-  ECS_CLUSTER:     ${{ secrets.ECS_CLUSTER_NAME }}
-  ECS_SERVICE:     ${{ secrets.ECS_SERVICE_NAME }}
+  AWS_REGION:       ${{ secrets.AWS_REGION }}
+  AWS_ROLE_ARN:     ${{ secrets.AWS_ROLE_ARN }}
+  ECR_REPOSITORY:   ${{ secrets.ECR_REPOSITORY }}
+  ECR_REGISTRY:     ${{ secrets.ECR_REGISTRY }}
+  ECS_CLUSTER:      ${{ secrets.ECS_CLUSTER_NAME }}
+  ECS_SERVICE:      ${{ secrets.ECS_SERVICE_NAME }}
+  # If you don't store your JSON in the repo, point to your family name here:
+  ECS_TASK_FAMILY:  ${{ secrets.ECS_TASK_FAMILY }}
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Configure AWS via OIDC
@@ -31,7 +32,7 @@ jobs:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region:    ${{ env.AWS_REGION }}
 
-      - name: Log in to ECR
+      - name: Login to ECR
         uses: aws-actions/amazon-ecr-login@v1
 
       - name: Build & push Docker image
@@ -45,13 +46,22 @@ jobs:
           build-args: |
             PROJECT_NAME=${{ secrets.PROJECT_NAME }}
 
-      - name: Deploy new image to ECS
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      # ─── 1) Grab your current task‐definition ───────────────────────────
+      - name: Download task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ env.ECS_TASK_FAMILY }} \
+            --query 'taskDefinition' \
+            > task-definition.json
+
+      # ─── 2) Inject image + env into it ────────────────────────────────
+      - name: Render Amazon ECS task definition
+        id: render
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          cluster:                   ${{ env.ECS_CLUSTER }}
-          service:                   ${{ env.ECS_SERVICE }}
-          image:                     ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-          wait-for-service-stability: true
+          task-definition: task-definition.json
+          container-name: fastapi            # ← your container name inside that JSON
+          image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
           environment-variables: |
             PROJECT_NAME=${{ secrets.PROJECT_NAME }}
             DATABASE_URL=${{ secrets.DATABASE_URL }}
@@ -59,4 +69,13 @@ jobs:
             DATABASE_PASSWORD=${{ secrets.DATABASE_PASSWORD }}
             DATABASE_HOST=${{ secrets.DATABASE_HOST }}
             DATABASE_PORT=${{ secrets.DATABASE_PORT }}
-            DATABASE_NAME=${{ secrets.DATABASE_NAME }}
+            DATABASE_NAME=${{ secrets.DATABASE_NAME }} :contentReference[oaicite:0]{index=0}
+
+      # ─── 3) Deploy the updated JSON ──────────────────────────────────
+      - name: Deploy to Amazon ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.render.outputs.task-definition }}
+          cluster:           ${{ env.ECS_CLUSTER }}
+          service:           ${{ env.ECS_SERVICE }}
+          wait-for-service-stability: true
