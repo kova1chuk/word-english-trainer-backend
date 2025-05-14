@@ -16,7 +16,9 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",  # Frontend URL for local development
+        # Frontend URL for local development (React default)
+        "http://localhost:3000",
+        "http://localhost:5173",  # Frontend URL for Vite.js development
         "https://d1xzzbrpkkcgr.cloudfront.net"  # Production frontend URL
     ],
     allow_credentials=True,
