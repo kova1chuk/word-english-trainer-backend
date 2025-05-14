@@ -7,7 +7,7 @@ router = APIRouter(
 
 
 @router.get(
-    "/",
+    "",
     summary="Health check",
     description="Returns OK if the server is running.",
     status_code=status.HTTP_200_OK,

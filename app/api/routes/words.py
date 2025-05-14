@@ -7,13 +7,12 @@ from app.db.models.word import Word
 from app.db.schemas.word import WordSchema
 
 router = APIRouter(
-    prefix="/words",
     tags=["Words"],
 )
 
 
 @router.get(
-    "/",
+    "",
     summary="List all words",
     description="Returns all words from the database.",
     response_model=List[WordSchema],

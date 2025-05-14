@@ -2,7 +2,6 @@ from fastapi import APIRouter, status
 from fastapi.responses import JSONResponse
 
 router = APIRouter(
-    prefix="/auth",
     tags=["Auth"],
     responses={404: {"description": "Not found"}},
 )
