@@ -60,7 +60,7 @@ jobs:
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: task-definition.json
-          container-name: fastapi            # ← your container name inside that JSON
+          container-name: backend            # ← your container name inside that JSON
           image: ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
           environment-variables: |
             PROJECT_NAME=${{ secrets.PROJECT_NAME }}
