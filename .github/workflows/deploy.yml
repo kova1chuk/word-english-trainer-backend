@@ -2,19 +2,20 @@ name: Deploy FastAPI to ECS
 
 on:
   push:
-    branches: [ dev ]
+    branches:
+      - dev
 
 permissions:
   contents: read
   id-token: write
 
 env:
-  AWS_REGION:     ${{ secrets.AWS_REGION }}
-  ACCOUNT_ID:     ${{ secrets.AWS_ACCOUNT_ID }}
-  ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY }}
-  ECR_REGISTRY:   ${{ secrets.ECR_REGISTRY }}
-  ECS_CLUSTER:    ${{ secrets.ECS_CLUSTER_NAME }}
-  ECS_SERVICE:    ${{ secrets.ECS_SERVICE_NAME }}
+  AWS_REGION:      ${{ secrets.AWS_REGION }}
+  AWS_ROLE_ARN:    ${{ secrets.AWS_ROLE_ARN }}       
+  ECR_REPOSITORY:  ${{ secrets.ECR_REPOSITORY }}
+  ECR_REGISTRY:    ${{ secrets.ECR_REGISTRY }}
+  ECS_CLUSTER:     ${{ secrets.ECS_CLUSTER_NAME }}
+  ECS_SERVICE:     ${{ secrets.ECS_SERVICE_NAME }}
 
 jobs:
   deploy:
@@ -27,7 +28,7 @@ jobs:
       - name: Configure AWS via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::${{ env.ACCOUNT_ID }}:role/${{ secrets.AWS_OIDC_ROLE_NAME }}
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region:    ${{ env.AWS_REGION }}
 
       - name: Log in to ECR
