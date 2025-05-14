@@ -69,15 +69,14 @@ jobs:
             DATABASE_PORT=${{ secrets.DATABASE_PORT }}
             DATABASE_NAME=${{ secrets.DATABASE_NAME }}
 
-      - name: Remove unsupported keys
+      - name: Strip unsupported keys
         run: |
-          echo "${{ steps.render.outputs.task-definition }}" > taskdef.json
-          jq 'del(.enableFaultInjection)' taskdef.json > taskdef_clean.json
+          jq 'del(.enableFaultInjection)' "${{ steps.render.outputs.task-definition }}" > taskdef_clean.json
 
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: taskdef_clean.json
-          cluster:           ${{ env.ECS_CLUSTER }}
-          service:           ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          service: ${{ env.ECS_SERVICE }}
           wait-for-service-stability: true
