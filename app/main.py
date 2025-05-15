@@ -49,7 +49,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
 async def health_check():
     return {"status": "healthy"}
 
-app.include_router(router, prefix="/api")
+app.include_router(router)
 
 if __name__ == "__main__":
     uvicorn.run(

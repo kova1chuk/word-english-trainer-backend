@@ -12,7 +12,7 @@ from typing import Optional
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 ALGORITHM = "HS256"
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/signin")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/signin")
 
 
 def get_password_hash(password: str) -> str:
