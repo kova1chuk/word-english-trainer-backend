@@ -8,6 +8,7 @@ from app.db.schemas.user import UserCreate, UserRead, Token
 from app.core.security import get_password_hash, verify_password, create_access_token, get_current_user
 
 router = APIRouter(
+    prefix="/auth",
     tags=["Auth"],
     responses={
         404: {"description": "Not found"},
